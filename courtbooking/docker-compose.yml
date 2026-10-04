@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17
+    container_name: courtbooking-db
+    environment:
+      POSTGRES_DB: courtbooking
+      POSTGRES_USER: courtbooking
+      POSTGRES_PASSWORD: courtbooking
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
