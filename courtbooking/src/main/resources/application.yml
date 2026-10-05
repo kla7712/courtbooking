@@ -15,5 +15,14 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+
 server:
   port: 8081
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:clave-solo-para-desarrollo-cambiar-en-produccion}
+    expiration-minutes: 60
+  admin:
+    email: admin@courtbooking.local
+    password: ${ADMIN_PASSWORD:admin1234}
