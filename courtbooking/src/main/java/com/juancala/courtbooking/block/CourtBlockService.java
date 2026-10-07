@@ -38,7 +38,10 @@ public class CourtBlockService {
 
     @Transactional
     public BlockResponse create(Long courtId, CreateBlockRequest request) {
-        Court court = getCourt(courtId);
+        // Mismo bloqueo de fila que al reservar: evita que entre una reserva
+        // justo mientras se comprueba si el horario está libre
+        Court court = courtRepository.findByIdForUpdate(courtId)
+                .orElseThrow(() -> new NotFoundException("No existe la pista con id " + courtId));
         if (!request.endTime().isAfter(request.startTime())) {
             throw new BadRequestException("La hora de fin debe ser posterior a la de inicio");
         }

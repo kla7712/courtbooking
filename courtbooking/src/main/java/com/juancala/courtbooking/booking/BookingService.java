@@ -56,7 +56,11 @@ public class BookingService {
 
     @Transactional
     public BookingResponse create(Long userId, CreateBookingRequest request) {
-        Court court = getActiveCourt(request.courtId());
+        // Bloquea la fila de la pista: si llegan varias reservas a la vez para la misma pista,
+        // se procesan de una en una y cada una ve las reservas que confirmaron las anteriores.
+        Court court = courtRepository.findByIdForUpdate(request.courtId())
+                .filter(Court::isActive)
+                .orElseThrow(() -> new NotFoundException("No existe la pista con id " + request.courtId()));
         validateSlot(court, request.startTime(), request.durationMinutes());
 
         Instant now = Instant.now();
@@ -84,7 +88,7 @@ public class BookingService {
             throw new ConflictException("La pista está bloqueada en ese horario: " + blocks.get(0).getReason());
         }
 
-        // Comprobación previa para dar un error claro en el caso normal...
+        // Con la pista bloqueada, esta comprobación ya es fiable aunque haya concurrencia
         if (!bookingRepository.findOverlapping(court.getId(), BookingStatus.CONFIRMED, start, end).isEmpty()) {
             throw new ConflictException(SLOT_TAKEN);
         }
@@ -95,8 +99,8 @@ public class BookingService {
         // getReferenceById no consulta la base de datos: basta el id para la clave foránea
         Booking booking = new Booking(userRepository.getReferenceById(userId), court, start, end, price);
         try {
-            // ...pero si dos peticiones llegan a la vez, ambas pasan esa comprobación.
-            // Ahí quien decide es la restricción de exclusión de PostgreSQL.
+            // Última línea de defensa: la restricción de exclusión de PostgreSQL impide el
+            // solapamiento aunque alguien escriba en la tabla sin pasar por este servicio.
             bookingRepository.saveAndFlush(booking);
         } catch (DataIntegrityViolationException ex) {
             throw new ConflictException(SLOT_TAKEN);
