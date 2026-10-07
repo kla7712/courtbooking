@@ -2,6 +2,7 @@ package com.juancala.courtbooking.booking.dto;
 
 import com.juancala.courtbooking.booking.Booking;
 import com.juancala.courtbooking.booking.BookingStatus;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -14,6 +15,7 @@ public record BookingResponse(
         LocalDate date,
         LocalTime startTime,
         LocalTime endTime,
+        BigDecimal price,
         BookingStatus status
 ) {
 
@@ -28,6 +30,7 @@ public record BookingResponse(
                 start.toLocalDate(),
                 start.toLocalTime(),
                 end.toLocalTime(),
+                booking.getPrice(),
                 booking.getStatus());
     }
 }

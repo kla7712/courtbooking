@@ -1,15 +1,21 @@
 package com.juancala.courtbooking.booking;
 
+import com.juancala.courtbooking.block.CourtBlock;
+import com.juancala.courtbooking.block.CourtBlockRepository;
 import com.juancala.courtbooking.booking.dto.AvailabilityResponse;
 import com.juancala.courtbooking.booking.dto.BookingResponse;
 import com.juancala.courtbooking.booking.dto.CreateBookingRequest;
+import com.juancala.courtbooking.booking.dto.SlotOption;
 import com.juancala.courtbooking.booking.dto.SlotResponse;
 import com.juancala.courtbooking.common.BadRequestException;
 import com.juancala.courtbooking.common.ConflictException;
 import com.juancala.courtbooking.common.NotFoundException;
 import com.juancala.courtbooking.court.Court;
 import com.juancala.courtbooking.court.CourtRepository;
+import com.juancala.courtbooking.pricing.PriceRule;
+import com.juancala.courtbooking.pricing.PricingService;
 import com.juancala.courtbooking.user.UserRepository;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -29,23 +35,29 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final CourtRepository courtRepository;
+    private final CourtBlockRepository courtBlockRepository;
     private final UserRepository userRepository;
+    private final PricingService pricingService;
     private final BookingRules rules;
 
     public BookingService(BookingRepository bookingRepository,
                           CourtRepository courtRepository,
+                          CourtBlockRepository courtBlockRepository,
                           UserRepository userRepository,
+                          PricingService pricingService,
                           BookingRules rules) {
         this.bookingRepository = bookingRepository;
         this.courtRepository = courtRepository;
+        this.courtBlockRepository = courtBlockRepository;
         this.userRepository = userRepository;
+        this.pricingService = pricingService;
         this.rules = rules;
     }
 
     @Transactional
     public BookingResponse create(Long userId, CreateBookingRequest request) {
         Court court = getActiveCourt(request.courtId());
-        validateSlot(request.startTime(), request.durationMinutes());
+        validateSlot(court, request.startTime(), request.durationMinutes());
 
         Instant now = Instant.now();
         Instant start = toInstant(request.date(), request.startTime());
@@ -67,13 +79,21 @@ public class BookingService {
                     "Has alcanzado el máximo de " + rules.getMaxActiveBookings() + " reservas activas");
         }
 
+        List<CourtBlock> blocks = courtBlockRepository.findOverlapping(court.getId(), start, end);
+        if (!blocks.isEmpty()) {
+            throw new ConflictException("La pista está bloqueada en ese horario: " + blocks.get(0).getReason());
+        }
+
         // Comprobación previa para dar un error claro en el caso normal...
         if (!bookingRepository.findOverlapping(court.getId(), BookingStatus.CONFIRMED, start, end).isEmpty()) {
             throw new ConflictException(SLOT_TAKEN);
         }
 
+        BigDecimal price = pricingService.calculate(
+                court, request.date(), request.startTime(), request.durationMinutes());
+
         // getReferenceById no consulta la base de datos: basta el id para la clave foránea
-        Booking booking = new Booking(userRepository.getReferenceById(userId), court, start, end);
+        Booking booking = new Booking(userRepository.getReferenceById(userId), court, start, end, price);
         try {
             // ...pero si dos peticiones llegan a la vez, ambas pasan esa comprobación.
             // Ahí quien decide es la restricción de exclusión de PostgreSQL.
@@ -112,7 +132,7 @@ public class BookingService {
         booking.cancel();
     }
 
-    /** Horas de inicio libres de una pista en un día, con las duraciones que caben en cada una. */
+    /** Horas de inicio libres de una pista en un día, con las duraciones que caben y su precio. */
     public AvailabilityResponse getAvailability(Long courtId, LocalDate date) {
         Court court = getActiveCourt(courtId);
         List<SlotResponse> slots = new ArrayList<>();
@@ -123,38 +143,46 @@ public class BookingService {
             Instant now = Instant.now();
             Instant dayStart = date.atStartOfDay(rules.getZone()).toInstant();
             Instant dayEnd = date.plusDays(1).atStartOfDay(rules.getZone()).toInstant();
-            List<Booking> bookings = bookingRepository
-                    .findOverlapping(courtId, BookingStatus.CONFIRMED, dayStart, dayEnd);
+
+            // Todo lo que ocupa la pista ese día: reservas confirmadas y bloqueos
+            List<Interval> busy = new ArrayList<>();
+            bookingRepository.findOverlapping(courtId, BookingStatus.CONFIRMED, dayStart, dayEnd)
+                    .forEach(b -> busy.add(new Interval(b.getStartTime(), b.getEndTime())));
+            courtBlockRepository.findOverlapping(courtId, dayStart, dayEnd)
+                    .forEach(cb -> busy.add(new Interval(cb.getStartTime(), cb.getEndTime())));
+
+            // Las tarifas se cargan una sola vez para todo el día
+            List<PriceRule> priceRules = pricingService.loadRules(court, date);
 
             int openingMinute = minuteOfDay(rules.getOpeningTime());
-            int closingMinute = minuteOfDay(rules.getClosingTime());
-            for (int minute = openingMinute; minute < closingMinute; minute += BookingRules.SLOT_STEP_MINUTES) {
+            int lastMinute = lastBookableMinute(court);
+            for (int minute = openingMinute; minute < lastMinute; minute += BookingRules.SLOT_STEP_MINUTES) {
                 LocalTime slotTime = LocalTime.ofSecondOfDay(minute * 60L);
                 Instant slotStart = toInstant(date, slotTime);
                 if (!slotStart.isAfter(now)) {
                     continue;
                 }
-                List<Integer> durations = new ArrayList<>();
+                List<SlotOption> options = new ArrayList<>();
                 for (int duration : BookingRules.ALLOWED_DURATIONS) {
-                    if (minute + duration > closingMinute) {
+                    if (minute + duration > lastMinute) {
                         continue;
                     }
                     Instant slotEnd = slotStart.plus(Duration.ofMinutes(duration));
-                    boolean free = bookings.stream().noneMatch(b ->
-                            b.getStartTime().isBefore(slotEnd) && b.getEndTime().isAfter(slotStart));
+                    boolean free = busy.stream().noneMatch(interval -> interval.overlaps(slotStart, slotEnd));
                     if (free) {
-                        durations.add(duration);
+                        options.add(new SlotOption(duration,
+                                pricingService.calculate(priceRules, court, slotTime, duration)));
                     }
                 }
-                if (!durations.isEmpty()) {
-                    slots.add(new SlotResponse(slotTime, durations));
+                if (!options.isEmpty()) {
+                    slots.add(new SlotResponse(slotTime, options));
                 }
             }
         }
         return new AvailabilityResponse(court.getId(), court.getName(), date, slots);
     }
 
-    private void validateSlot(LocalTime startTime, int durationMinutes) {
+    private void validateSlot(Court court, LocalTime startTime, int durationMinutes) {
         if (!BookingRules.ALLOWED_DURATIONS.contains(durationMinutes)) {
             throw new BadRequestException("La duración debe ser de 60 o 90 minutos");
         }
@@ -165,12 +193,25 @@ public class BookingService {
             throw new BadRequestException("La reserva debe empezar en punto o a y media");
         }
         int startMinute = minuteOfDay(startTime);
+        int endMinute = startMinute + durationMinutes;
         boolean withinOpeningHours = startMinute >= minuteOfDay(rules.getOpeningTime())
-                && startMinute + durationMinutes <= minuteOfDay(rules.getClosingTime());
+                && endMinute <= minuteOfDay(rules.getClosingTime());
         if (!withinOpeningHours) {
             throw new BadRequestException("El horario del club es de "
                     + rules.getOpeningTime() + " a " + rules.getClosingTime());
         }
+        if (endMinute > lastBookableMinute(court)) {
+            throw new BadRequestException("Esta pista no tiene iluminación: solo se puede reservar hasta las "
+                    + rules.getLightingFrom());
+        }
+    }
+
+    /** Las pistas sin luz dejan de poder usarse cuando empieza el horario con iluminación. */
+    private int lastBookableMinute(Court court) {
+        int closingMinute = minuteOfDay(rules.getClosingTime());
+        return court.isHasLighting()
+                ? closingMinute
+                : Math.min(closingMinute, minuteOfDay(rules.getLightingFrom()));
     }
 
     private Court getActiveCourt(Long courtId) {
@@ -185,5 +226,12 @@ public class BookingService {
 
     private int minuteOfDay(LocalTime time) {
         return time.toSecondOfDay() / 60;
+    }
+
+    private record Interval(Instant start, Instant end) {
+
+        boolean overlaps(Instant otherStart, Instant otherEnd) {
+            return start.isBefore(otherEnd) && end.isAfter(otherStart);
+        }
     }
 }

@@ -45,9 +45,13 @@ public class SecurityConfig {
                         // Documentación de la API (Swagger UI y especificación OpenAPI)
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
-                        // Consultar pistas es público; modificarlas, solo para administradores
+                        // Consultar pistas (y su disponibilidad y bloqueos) es público;
+                        // modificarlas, solo para administradores
                         .requestMatchers(HttpMethod.GET, "/api/courts/**").permitAll()
                         .requestMatchers("/api/courts/**").hasRole("ADMIN")
+                        // Lo mismo con las tarifas
+                        .requestMatchers(HttpMethod.GET, "/api/price-rules/**").permitAll()
+                        .requestMatchers("/api/price-rules/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 // Valida el JWT de la cabecera "Authorization: Bearer <token>" en cada petición
                 .oauth2ResourceServer(oauth2 -> oauth2

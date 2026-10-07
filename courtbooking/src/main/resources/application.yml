@@ -33,3 +33,5 @@ app:
     max-days-in-advance: 7
     max-active-bookings: 3
     cancellation-hours: 24
+    lighting-from: "19:00"
+    lighting-supplement-per-hour: "3.00"
