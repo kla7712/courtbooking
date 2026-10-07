@@ -1,0 +1,29 @@
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" routerLink="/">
+      <svg class="brand__ball" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="11" />
+        <path d="M4.2 4.4c3.2 3.4 3.2 11.8 0 15.2M19.8 4.4c-3.2 3.4-3.2 11.8 0 15.2" />
+      </svg>
+      Pista Libre
+    </a>
+
+    <nav class="site-nav" aria-label="Principal">
+      <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Pistas</a>
+
+      @if (auth.isLoggedIn()) {
+        <span class="site-nav__user">{{ auth.user()?.name }}</span>
+        <button type="button" class="site-nav__logout" (click)="auth.logout()">Cerrar sesión</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="is-active">Iniciar sesión</a>
+        <a class="button button--small" routerLink="/registro">Crear cuenta</a>
+      }
+    </nav>
+  </div>
+</header>
+
+<main id="contenido">
+  <router-outlet />
+</main>

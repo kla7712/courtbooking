@@ -1,0 +1,35 @@
+<div class="page">
+  <header class="intro">
+    <h1>Elige pista</h1>
+    <p>Tierra batida, pista dura o césped artificial. Abrimos todos los días de 8:00 a 22:00.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando pistas…</p>
+  } @else if (error(); as message) {
+    <div class="alert" role="alert">
+      {{ message }}
+      <button type="button" class="retry" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (courts().length === 0) {
+    <p class="status">Ahora mismo no hay ninguna pista disponible.</p>
+  } @else {
+    <ul class="courts">
+      @for (court of courts(); track court.id) {
+        <li class="court">
+          <app-court-diagram [surface]="court.surface" />
+          <div class="court__body">
+            <h2>{{ court.name }}</h2>
+            <p class="court__surface" [attr.data-surface]="court.surface">
+              {{ surfaceLabels[court.surface] }}
+            </p>
+            <p class="court__details">
+              {{ court.indoor ? 'Cubierta' : 'Exterior' }},
+              {{ court.hasLighting ? 'con iluminación' : 'sin iluminación' }}
+            </p>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>
