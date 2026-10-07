@@ -26,3 +26,10 @@ app:
   admin:
     email: admin@courtbooking.local
     password: ${ADMIN_PASSWORD:admin1234}
+  booking:
+    zone: Europe/Madrid
+    opening-time: "08:00"
+    closing-time: "22:00"
+    max-days-in-advance: 7
+    max-active-bookings: 3
+    cancellation-hours: 24
