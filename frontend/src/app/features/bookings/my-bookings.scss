@@ -1,0 +1,122 @@
+.intro {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    font-stretch: 122%;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+}
+
+.status {
+  color: var(--muted);
+
+  a {
+    color: var(--ink);
+    font-weight: 650;
+  }
+}
+
+.retry {
+  margin-left: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  color: var(--muted);
+  font-size: 1.125rem;
+}
+
+.section-title {
+  margin-bottom: 0.875rem;
+  font-size: 1.25rem;
+}
+
+.history {
+  margin-top: 3rem;
+}
+
+.bookings {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 46rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.booking {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--court);
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+.booking__date {
+  font-weight: 600;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.booking__time {
+  font-size: 1.5rem;
+  font-stretch: 112%;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.booking__court {
+  color: var(--muted);
+}
+
+.booking__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.booking__question {
+  width: 100%;
+  font-weight: 600;
+}
+
+.booking__error {
+  width: 100%;
+  margin: 0;
+}
+
+.booking__status {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.bookings--past .booking {
+  border-left-color: var(--rule);
+  background: transparent;
+
+  .booking__time {
+    font-size: 1.125rem;
+  }
+}

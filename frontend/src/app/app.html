@@ -14,6 +14,7 @@
       <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Pistas</a>
 
       @if (auth.isLoggedIn()) {
+        <a routerLink="/mis-reservas" routerLinkActive="is-active">Mis reservas</a>
         <span class="site-nav__user">{{ auth.user()?.name }}</span>
         <button type="button" class="site-nav__logout" (click)="auth.logout()">Cerrar sesión</button>
       } @else {

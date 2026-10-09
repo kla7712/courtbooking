@@ -9,3 +9,12 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   return auth.isLoggedIn() ? router.createUrlTree(['/']) : true;
 };
+
+/** Solo con sesión: si no la hay, lleva al login y recuerda a dónde se quería ir. */
+export const authGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.isLoggedIn()
+    ? true
+    : router.createUrlTree(['/login'], { queryParams: { volver: state.url } });
+};

@@ -1,0 +1,116 @@
+<div class="page">
+  <a class="back" routerLink="/">Todas las pistas</a>
+
+  @if (courtError(); as message) {
+    <p class="alert" role="alert">{{ message }}</p>
+  } @else if (court(); as court) {
+    <header class="court-header">
+      <div>
+        <h1>{{ court.name }}</h1>
+        <p class="surface-tag" [attr.data-surface]="court.surface">{{ surfaceLabels[court.surface] }}</p>
+        <p class="court-header__details">
+          {{ court.indoor ? 'Cubierta' : 'Exterior' }},
+          {{ court.hasLighting ? 'con iluminación' : 'sin iluminación' }}
+        </p>
+      </div>
+      <app-court-diagram class="court-header__diagram" [surface]="court.surface" />
+    </header>
+
+    <section aria-labelledby="titulo-dia">
+      <h2 id="titulo-dia" class="section-title">¿Qué día quieres jugar?</h2>
+      <div class="days" role="group" aria-labelledby="titulo-dia">
+        @for (day of days; track day.date) {
+          <button
+            type="button"
+            class="day"
+            [attr.aria-pressed]="selectedDate() === day.date"
+            (click)="selectDate(day.date)"
+          >
+            <span class="day__weekday">{{ day.weekday }}</span>
+            <span class="day__number">{{ day.dayNumber }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <div class="booking-layout">
+      <section aria-labelledby="titulo-horas">
+        <h2 id="titulo-horas" class="section-title">Horas libres del {{ selectedDateLabel() }}</h2>
+
+        @if (loading()) {
+          <p class="status" role="status">Cargando horas libres…</p>
+        } @else if (error(); as message) {
+          <p class="alert" role="alert">{{ message }}</p>
+        } @else if (availability()?.slots?.length) {
+          <div class="slots" role="group" aria-labelledby="titulo-horas">
+            @for (slot of availability()!.slots; track slot.startTime) {
+              <button
+                type="button"
+                class="slot"
+                [attr.aria-pressed]="selectedSlot()?.startTime === slot.startTime"
+                (click)="selectSlot(slot)"
+              >
+                <span class="slot__time">{{ shortTime(slot.startTime) }}</span>
+                <span class="slot__price">desde {{ formatPrice(lowestPrice(slot)) }}</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="status">No quedan horas libres este día. Prueba con otro.</p>
+        }
+      </section>
+
+      <aside class="summary" aria-live="polite">
+        @if (confirmed(); as booking) {
+          <h2 class="summary__title">Reserva confirmada</h2>
+          <p class="alert alert--success">
+            {{ booking.courtName }}, {{ confirmedDateLabel(booking) }}, de
+            {{ shortTime(booking.startTime) }} a {{ shortTime(booking.endTime) }}.
+            Total: {{ formatPrice(booking.price) }}.
+          </p>
+          <a class="button button--secondary button--block" routerLink="/mis-reservas">Ver mis reservas</a>
+        } @else if (selectedSlot(); as slot) {
+          <h2 class="summary__title">Tu reserva</h2>
+          <p class="summary__when">
+            {{ selectedDateLabel() }}, de {{ shortTime(slot.startTime) }} a {{ selectedEndTime() }}
+          </p>
+
+          <fieldset class="durations">
+            <legend>Duración</legend>
+            @for (option of slot.options; track option.durationMinutes) {
+              <label class="duration">
+                <input
+                  type="radio"
+                  name="duracion"
+                  [checked]="selectedOption()?.durationMinutes === option.durationMinutes"
+                  (change)="selectOption(option)"
+                />
+                <span class="duration__label">{{ option.durationMinutes }} minutos</span>
+                <span class="duration__price">{{ formatPrice(option.price) }}</span>
+              </label>
+            }
+          </fieldset>
+
+          @if (bookingError(); as message) {
+            <p class="alert" role="alert">{{ message }}</p>
+          }
+
+          @if (auth.isLoggedIn()) {
+            <button type="button" class="button button--block" [disabled]="booking()" (click)="book()">
+              {{ booking() ? 'Reservando…' : 'Reservar pista' }}
+            </button>
+          } @else {
+            <a class="button button--block" routerLink="/login" [queryParams]="{ volver: returnUrl() }">
+              Inicia sesión para reservar
+            </a>
+          }
+        } @else {
+          <h2 class="summary__title">Tu reserva</h2>
+          <p class="summary__empty">Elige una hora para ver el precio y reservar.</p>
+        }
+      </aside>
+    </div>
+  } @else {
+    <p class="status" role="status">Cargando pista…</p>
+  }
+</div>

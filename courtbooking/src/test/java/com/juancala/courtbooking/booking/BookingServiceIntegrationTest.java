@@ -200,6 +200,30 @@ class BookingServiceIntegrationTest {
         assertThat(price).isEqualByComparingTo("16.00");
     }
 
+    @Test
+    void priceRuleBoundariesAreNotShiftedByTimeZone() {
+        LocalDate friday = LocalDate.of(2026, 10, 9);
+
+        // Primera hora del día (valle) y primera hora de punta: detectan cualquier desfase horario
+        assertThat(pricingService.calculate(litClayCourt, friday, LocalTime.of(8, 0), 60))
+                .isEqualByComparingTo("12.00");
+        assertThat(pricingService.calculate(litClayCourt, friday, LocalTime.of(17, 0), 60))
+                .isEqualByComparingTo("16.00");
+    }
+
+    @Test
+    void bookingTimesSurviveARoundTripThroughTheDatabase() {
+        Long userId = createUser();
+        bookingService.create(userId,
+                new CreateBookingRequest(litClayCourt.getId(), bookingDate, LocalTime.of(10, 0), 60));
+
+        // findByUser vuelve a leer la reserva de la base de datos
+        BookingResponse stored = bookingService.findByUser(userId).get(0);
+
+        assertThat(stored.startTime()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(stored.endTime()).isEqualTo(LocalTime.of(11, 0));
+    }
+
     private Court findCourt(String name) {
         return courtRepository.findAll().stream()
                 .filter(court -> court.getName().equals(name))

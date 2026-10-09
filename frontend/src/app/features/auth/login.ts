@@ -19,6 +19,8 @@ export class Login {
 
   /** Parámetro ?caducada=1 de la URL: la sesión anterior ha caducado. */
   readonly caducada = input<string>();
+  /** Parámetro ?volver=/ruta: página a la que regresar tras iniciar sesión. */
+  readonly volver = input<string>();
 
   protected readonly form = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
@@ -27,6 +29,12 @@ export class Login {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  /** Solo se aceptan rutas internas, para no redirigir a webs ajenas. */
+  private returnUrl(): string {
+    const target = this.volver();
+    return target && target.startsWith('/') && !target.startsWith('//') ? target : '/';
+  }
 
   protected submit(): void {
     if (this.form.invalid) {
@@ -37,7 +45,7 @@ export class Login {
     this.error.set(null);
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigateByUrl('/'),
+      next: () => this.router.navigateByUrl(this.returnUrl()),
       error: (error: unknown) => {
         this.error.set(apiErrorMessage(error));
         this.submitting.set(false);

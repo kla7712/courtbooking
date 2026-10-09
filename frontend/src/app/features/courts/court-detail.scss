@@ -1,0 +1,237 @@
+.back {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: var(--muted);
+  font-weight: 600;
+
+  &:hover {
+    color: var(--ink);
+  }
+}
+
+.status {
+  color: var(--muted);
+}
+
+.court-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+
+  h1 {
+    margin-bottom: 0.75rem;
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    font-stretch: 122%;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+}
+
+.court-header__details {
+  color: var(--muted);
+}
+
+.court-header__diagram {
+  flex: none;
+  width: min(15rem, 38%);
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.section-title {
+  margin-bottom: 0.875rem;
+  font-size: 1.25rem;
+}
+
+/* Selector de día */
+.days {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 0.25rem;
+  overflow-x: auto;
+}
+
+.day {
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 0.125rem;
+  min-width: 4.25rem;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid #9aa79e;
+  border-radius: var(--radius);
+  background: var(--line);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--ink);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--court);
+    background: var(--court);
+    color: var(--line);
+  }
+}
+
+.day__weekday {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.day__number {
+  font-size: 1.5rem;
+  font-stretch: 112%;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* Horas a la izquierda, resumen de la reserva a la derecha */
+.booking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.25rem, 1fr));
+  gap: 0.625rem;
+}
+
+.slot {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.7rem 0.8rem;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--line);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--ink);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--court);
+    background: var(--court);
+    color: var(--line);
+
+    .slot__price {
+      color: var(--ball);
+    }
+  }
+}
+
+.slot__time {
+  font-size: 1.375rem;
+  font-stretch: 112%;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.slot__price {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Resumen de la reserva */
+.summary {
+  position: sticky;
+  top: 1.5rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border: 1px solid var(--rule);
+  border-top: 4px solid var(--court);
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+.summary__title {
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.summary__when {
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.summary__empty {
+  color: var(--muted);
+}
+
+.durations {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    font-weight: 600;
+  }
+}
+
+.duration {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.65rem 0.8rem;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+
+  & + & {
+    margin-top: 0.5rem;
+  }
+
+  &:has(input:checked) {
+    border-color: var(--court);
+    background: rgb(23 64 47 / 0.06);
+  }
+
+  input {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    accent-color: var(--court);
+  }
+}
+
+.duration__price {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 50rem) {
+  .booking-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summary {
+    position: static;
+  }
+
+  .court-header__diagram {
+    display: none;
+  }
+}

@@ -169,3 +169,87 @@ a {
     transition: none !important;
   }
 }
+
+/* El nombre de una superficie lleva siempre al lado un punto de su color */
+[data-surface='CLAY'] {
+  --surface: var(--clay);
+}
+[data-surface='HARD'] {
+  --surface: var(--hard);
+}
+[data-surface='ARTIFICIAL_GRASS'] {
+  --surface: var(--grass);
+}
+
+.surface-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+
+  &::before {
+    content: '';
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--surface);
+  }
+}
+
+/* Botones de selección: filtros, días */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.95rem;
+  border: 1.5px solid #9aa79e;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &[data-surface]::before {
+    content: '';
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--surface);
+  }
+
+  &:hover {
+    border-color: var(--ink);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--court);
+    background: var(--court);
+    color: var(--line);
+  }
+}
+
+.button--secondary {
+  border: 1.5px solid var(--ink);
+  background: transparent;
+
+  &:hover {
+    background: rgb(16 38 29 / 0.07);
+  }
+}
+
+.button--danger {
+  background: var(--danger);
+  color: var(--line);
+
+  &:hover {
+    background: #86200f;
+  }
+}
+
+.alert--success {
+  border-left-color: var(--grass);
+  background: #eaf3e8;
+  color: #24521f;
+}

@@ -1,6 +1,6 @@
 .intro {
   max-width: 38rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 
   h1 {
     margin-bottom: 0.75rem;
@@ -33,6 +33,13 @@
   cursor: pointer;
 }
 
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
 .courts {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
@@ -43,10 +50,22 @@
 }
 
 .court {
+  display: block;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--line);
+  text-decoration: none;
+  transition: border-color 120ms ease;
+
+  &:hover {
+    border-color: var(--ink);
+
+    .court__action {
+      text-decoration-color: currentColor;
+    }
+  }
 }
 
 .court__body {
@@ -58,33 +77,17 @@
   }
 }
 
-/* El nombre de la superficie lleva al lado un punto de su color */
-.court__surface {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-
-  &::before {
-    content: '';
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
-    background: var(--surface);
-  }
-
-  &[data-surface='CLAY'] {
-    --surface: var(--clay);
-  }
-  &[data-surface='HARD'] {
-    --surface: var(--hard);
-  }
-  &[data-surface='ARTIFICIAL_GRASS'] {
-    --surface: var(--grass);
-  }
-}
-
 .court__details {
   margin-top: 0.125rem;
   color: var(--muted);
+}
+
+.court__action {
+  display: inline-block;
+  margin-top: 0.875rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: var(--ball-dark);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
 }

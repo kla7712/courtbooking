@@ -14,20 +14,42 @@
   } @else if (courts().length === 0) {
     <p class="status">Ahora mismo no hay ninguna pista disponible.</p>
   } @else {
+    @if (surfaces().length > 1) {
+      <div class="filter" role="group" aria-label="Filtrar por superficie">
+        <button type="button" class="chip" [attr.aria-pressed]="surfaceFilter() === null" (click)="surfaceFilter.set(null)">
+          Todas
+        </button>
+        @for (surface of surfaces(); track surface) {
+          <button
+            type="button"
+            class="chip"
+            [attr.data-surface]="surface"
+            [attr.aria-pressed]="surfaceFilter() === surface"
+            (click)="surfaceFilter.set(surface)"
+          >
+            {{ surfaceLabels[surface] }}
+          </button>
+        }
+      </div>
+    }
+
     <ul class="courts">
-      @for (court of courts(); track court.id) {
-        <li class="court">
-          <app-court-diagram [surface]="court.surface" />
-          <div class="court__body">
-            <h2>{{ court.name }}</h2>
-            <p class="court__surface" [attr.data-surface]="court.surface">
-              {{ surfaceLabels[court.surface] }}
-            </p>
-            <p class="court__details">
-              {{ court.indoor ? 'Cubierta' : 'Exterior' }},
-              {{ court.hasLighting ? 'con iluminación' : 'sin iluminación' }}
-            </p>
-          </div>
+      @for (court of visibleCourts(); track court.id) {
+        <li>
+          <a class="court" [routerLink]="['/pistas', court.id]">
+            <app-court-diagram [surface]="court.surface" />
+            <div class="court__body">
+              <h2>{{ court.name }}</h2>
+              <p class="surface-tag" [attr.data-surface]="court.surface">
+                {{ surfaceLabels[court.surface] }}
+              </p>
+              <p class="court__details">
+                {{ court.indoor ? 'Cubierta' : 'Exterior' }},
+                {{ court.hasLighting ? 'con iluminación' : 'sin iluminación' }}
+              </p>
+              <span class="court__action">Ver horas libres</span>
+            </div>
+          </a>
         </li>
       }
     </ul>

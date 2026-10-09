@@ -32,3 +32,36 @@ export const SURFACE_LABELS: Record<Surface, string> = {
   HARD: 'Pista dura',
   ARTIFICIAL_GRASS: 'Césped artificial',
 };
+
+/** Una duración reservable desde una hora de inicio, con su precio. */
+export interface SlotOption {
+  durationMinutes: number;
+  price: number;
+}
+
+export interface Slot {
+  /** Hora local del club, "HH:mm" o "HH:mm:ss". */
+  startTime: string;
+  options: SlotOption[];
+}
+
+export interface Availability {
+  courtId: number;
+  courtName: string;
+  /** Fecha en formato "AAAA-MM-DD". */
+  date: string;
+  slots: Slot[];
+}
+
+export type BookingStatus = 'CONFIRMED' | 'CANCELLED';
+
+export interface Booking {
+  id: number;
+  courtId: number;
+  courtName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  price: number;
+  status: BookingStatus;
+}

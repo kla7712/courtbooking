@@ -1,0 +1,86 @@
+<div class="page">
+  <header class="intro">
+    <h1>Mis reservas</h1>
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando tus reservas…</p>
+  } @else if (error(); as message) {
+    <div class="alert" role="alert">
+      {{ message }}
+      <button type="button" class="retry" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (bookings().length === 0) {
+    <div class="empty">
+      <p>Todavía no has reservado ninguna pista.</p>
+      <a class="button" routerLink="/">Elegir pista</a>
+    </div>
+  } @else {
+    <section aria-labelledby="titulo-proximas">
+      <h2 id="titulo-proximas" class="section-title">Próximas</h2>
+
+      @if (upcoming().length === 0) {
+        <p class="status">No tienes ninguna reserva pendiente. <a routerLink="/">Elegir pista</a></p>
+      } @else {
+        <ul class="bookings">
+          @for (booking of upcoming(); track booking.id) {
+            <li class="booking">
+              <div class="booking__main">
+                <p class="booking__date">{{ formatLongDate(booking.date) }}</p>
+                <p class="booking__time">
+                  {{ shortTime(booking.startTime) }} – {{ shortTime(booking.endTime) }}
+                </p>
+                <p class="booking__court">{{ booking.courtName }}, {{ formatPrice(booking.price) }}</p>
+              </div>
+
+              <div class="booking__actions">
+                @if (confirmingId() === booking.id) {
+                  <p class="booking__question">¿Cancelar esta reserva?</p>
+                  <button
+                    type="button"
+                    class="button button--small button--danger"
+                    [disabled]="cancellingId() === booking.id"
+                    (click)="cancel(booking)"
+                  >
+                    {{ cancellingId() === booking.id ? 'Cancelando…' : 'Sí, cancelar' }}
+                  </button>
+                  <button type="button" class="button button--small button--secondary" (click)="keep()">
+                    No, mantener
+                  </button>
+                } @else {
+                  <button type="button" class="button button--small button--secondary" (click)="askToCancel(booking)">
+                    Cancelar reserva
+                  </button>
+                }
+              </div>
+
+              @if (cancelError()?.id === booking.id) {
+                <p class="alert booking__error" role="alert">{{ cancelError()!.message }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (past().length > 0) {
+      <section class="history" aria-labelledby="titulo-anteriores">
+        <h2 id="titulo-anteriores" class="section-title">Anteriores y canceladas</h2>
+        <ul class="bookings bookings--past">
+          @for (booking of past(); track booking.id) {
+            <li class="booking">
+              <div class="booking__main">
+                <p class="booking__date">{{ formatLongDate(booking.date) }}</p>
+                <p class="booking__time">
+                  {{ shortTime(booking.startTime) }} – {{ shortTime(booking.endTime) }}
+                </p>
+                <p class="booking__court">{{ booking.courtName }}, {{ formatPrice(booking.price) }}</p>
+              </div>
+              <p class="booking__status">{{ booking.status === 'CANCELLED' ? 'Cancelada' : 'Jugada' }}</p>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>
