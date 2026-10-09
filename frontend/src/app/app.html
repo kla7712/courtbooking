@@ -15,6 +15,9 @@
 
       @if (auth.isLoggedIn()) {
         <a routerLink="/mis-reservas" routerLinkActive="is-active">Mis reservas</a>
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin" routerLinkActive="is-active">Administración</a>
+        }
         <span class="site-nav__user">{{ auth.user()?.name }}</span>
         <button type="button" class="site-nav__logout" (click)="auth.logout()">Cerrar sesión</button>
       } @else {

@@ -1,0 +1,134 @@
+<p class="note">
+  Un bloqueo impide reservar una pista durante un intervalo, por ejemplo por mantenimiento, lluvia o un torneo.
+  No se puede bloquear un horario que ya tiene reservas confirmadas.
+</p>
+
+@if (courtsError(); as message) {
+  <p class="alert" role="alert">{{ message }}</p>
+} @else if (courts().length === 0 && !loading()) {
+  <p class="status">No hay pistas activas que bloquear.</p>
+} @else {
+  <div class="filters">
+    <div class="field">
+      <label for="block-court">Pista</label>
+      <select id="block-court" [value]="courtId()" (change)="selectCourt($any($event.target).value)">
+        @for (court of courts(); track court.id) {
+          <option [value]="court.id" [selected]="court.id === courtId()">{{ court.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="block-date">Día</label>
+      <input id="block-date" type="date" [value]="date()" (change)="selectDate($any($event.target).value)" />
+    </div>
+  </div>
+
+  <div class="admin-layout">
+    <section aria-labelledby="titulo-bloqueos">
+      <h2 id="titulo-bloqueos" class="section-title">Bloqueos del {{ dateLabel() }}</h2>
+
+      @if (loading()) {
+        <p class="status" role="status">Cargando bloqueos…</p>
+      } @else if (error(); as message) {
+        <p class="alert" role="alert">{{ message }}</p>
+      } @else if (blocks().length === 0) {
+        <p class="status">Esta pista no tiene bloqueos este día.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Horario</th>
+                <th scope="col">Motivo</th>
+                <th scope="col"><span class="visually-hidden">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (block of blocks(); track block.id) {
+                <tr>
+                  <td class="cell-time cell-name">
+                    {{ shortTime(block.startTime) }} – {{ shortTime(block.endTime) }}
+                  </td>
+                  <td>{{ block.reason }}</td>
+                  <td class="cell-actions">
+                    <button
+                      type="button"
+                      class="button button--small button--secondary"
+                      [disabled]="deletingId() === block.id"
+                      (click)="remove(block)"
+                    >
+                      {{ deletingId() === block.id ? 'Quitando…' : 'Quitar bloqueo' }}
+                    </button>
+                  </td>
+                </tr>
+                @if (rowError()?.id === block.id) {
+                  <tr class="row-error">
+                    <td colspan="3" role="alert">{{ rowError()!.message }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <aside class="panel">
+      <h2 class="section-title">Bloquear pista</h2>
+
+      @if (formError(); as message) {
+        <p class="alert" role="alert">{{ message }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="create()" novalidate>
+        <div class="time-pair">
+          <div class="field">
+            <label for="block-start">Desde</label>
+            <input
+              id="block-start"
+              type="time"
+              formControlName="startTime"
+              [class.is-invalid]="form.controls.startTime.touched && form.controls.startTime.invalid"
+            />
+          </div>
+          <div class="field">
+            <label for="block-end">Hasta</label>
+            <input
+              id="block-end"
+              type="time"
+              formControlName="endTime"
+              [class.is-invalid]="(form.controls.endTime.touched && form.controls.endTime.invalid) || endBeforeStart()"
+            />
+          </div>
+        </div>
+        @if (endBeforeStart()) {
+          <p class="field__error">La hora de fin debe ser posterior a la de inicio.</p>
+        } @else if (
+          (form.controls.startTime.touched && form.controls.startTime.invalid) ||
+          (form.controls.endTime.touched && form.controls.endTime.invalid)
+        ) {
+          <p class="field__error">Indica la hora de inicio y la de fin.</p>
+        }
+
+        <div class="field">
+          <label for="block-reason">Motivo</label>
+          <input
+            id="block-reason"
+            type="text"
+            formControlName="reason"
+            [class.is-invalid]="form.controls.reason.touched && form.controls.reason.invalid"
+          />
+          @if (form.controls.reason.touched && form.controls.reason.invalid) {
+            <span class="field__error">Escribe el motivo, hasta 200 caracteres.</span>
+          }
+        </div>
+
+        <div class="panel__actions">
+          <button type="submit" class="button button--block" [disabled]="saving()">
+            {{ saving() ? 'Bloqueando…' : 'Bloquear pista' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}

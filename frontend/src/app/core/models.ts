@@ -65,3 +65,30 @@ export interface Booking {
   price: number;
   status: BookingStatus;
 }
+
+export type DayType = 'WEEKDAY' | 'WEEKEND';
+
+export const DAY_TYPE_LABELS: Record<DayType, string> = {
+  WEEKDAY: 'Lunes a viernes',
+  WEEKEND: 'Fin de semana',
+};
+
+/** Precio por hora de una superficie en una franja horaria. */
+export interface PriceRule {
+  id: number;
+  surface: Surface;
+  dayType: DayType;
+  startTime: string;
+  endTime: string;
+  pricePerHour: number;
+}
+
+/** Intervalo en el que una pista no se puede reservar (mantenimiento, lluvia, torneo...). */
+export interface CourtBlock {
+  id: number;
+  courtId: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
+}

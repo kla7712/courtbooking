@@ -1,0 +1,75 @@
+<p class="note">
+  Precio por hora de cada superficie según el día y la franja. Un cambio se aplica a las reservas nuevas;
+  las que ya están hechas conservan su precio.
+</p>
+
+@if (loading()) {
+  <p class="status" role="status">Cargando tarifas…</p>
+} @else if (error(); as message) {
+  <p class="alert" role="alert">{{ message }}</p>
+} @else {
+  @for (group of groups(); track group.surface) {
+    <section class="price-group">
+      <h2 class="section-title surface-tag" [attr.data-surface]="group.surface">
+        {{ surfaceLabels[group.surface] }}
+      </h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Días</th>
+              <th scope="col">Franja</th>
+              <th scope="col">Precio por hora</th>
+              <th scope="col"><span class="visually-hidden">Guardar</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rule of group.rules; track rule.id) {
+              <tr>
+                <td>{{ dayTypeLabels[rule.dayType] }}</td>
+                <td class="cell-time">{{ shortTime(rule.startTime) }} – {{ shortTime(rule.endTime) }}</td>
+                <td>
+                  <span class="price-input">
+                    <input
+                      type="text"
+                      inputmode="decimal"
+                      [attr.aria-label]="'Precio por hora, ' + dayTypeLabels[rule.dayType] + ' de ' + shortTime(rule.startTime) + ' a ' + shortTime(rule.endTime)"
+                      [value]="value(rule)"
+                      [class.is-invalid]="parsed(rule) === null"
+                      (input)="setDraft(rule, $any($event.target).value)"
+                      (keydown.enter)="save(rule)"
+                    />
+                    €
+                  </span>
+                </td>
+                <td class="cell-actions">
+                  @if (savedId() === rule.id) {
+                    <span class="saved" role="status">Guardado</span>
+                  }
+                  <button
+                    type="button"
+                    class="button button--small"
+                    [disabled]="!hasChanged(rule) || parsed(rule) === null || savingId() === rule.id"
+                    (click)="save(rule)"
+                  >
+                    {{ savingId() === rule.id ? 'Guardando…' : 'Guardar' }}
+                  </button>
+                </td>
+              </tr>
+              @if (parsed(rule) === null) {
+                <tr class="row-error">
+                  <td colspan="4">Escribe un precio válido, por ejemplo 12,50.</td>
+                </tr>
+              } @else if (rowError()?.id === rule.id) {
+                <tr class="row-error">
+                  <td colspan="4" role="alert">{{ rowError()!.message }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}

@@ -1,0 +1,189 @@
+/* Estilos compartidos por las pantallas del panel de administración */
+
+.admin-title {
+  margin-bottom: 1.5rem;
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  font-stretch: 122%;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.tabs {
+  display: flex;
+  gap: 1.75rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--rule);
+
+  a {
+    margin-bottom: -1px;
+    padding: 0.5rem 0;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-weight: 650;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--ink);
+    }
+
+    &.is-active {
+      border-bottom-color: var(--court);
+      color: var(--ink);
+    }
+  }
+}
+
+.section-title {
+  margin-bottom: 0.875rem;
+  font-size: 1.25rem;
+}
+
+.status {
+  color: var(--muted);
+}
+
+.note {
+  max-width: 44rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted);
+}
+
+/* Listado a la izquierda, formulario a la derecha */
+.admin-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.panel {
+  padding: 1.25rem 1.25rem 1.5rem;
+  border: 1px solid var(--rule);
+  border-top: 4px solid var(--court);
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+.panel__actions {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.table-wrap {
+  /* relative: mantiene dentro del contenedor los textos ocultos para lectores de pantalla */
+  position: relative;
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--line);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+tbody tr + tr td {
+  border-top: 1px solid var(--rule);
+}
+
+.cell-name {
+  font-weight: 700;
+}
+
+.cell-actions {
+  white-space: nowrap;
+  text-align: right;
+
+  .button + .button {
+    margin-left: 0.4rem;
+  }
+}
+
+.cell-time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.row-error td {
+  padding-top: 0;
+  border-top: 0 !important;
+  color: var(--danger);
+  font-weight: 550;
+}
+
+/* Tarifas */
+.price-group {
+  margin-bottom: 2rem;
+  max-width: 44rem;
+}
+
+.price-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  input {
+    width: 6rem;
+    padding: 0.45rem 0.6rem;
+    border: 1.5px solid #9aa79e;
+    border-radius: var(--radius);
+    background: var(--line);
+    color: var(--ink);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+
+    &.is-invalid {
+      border-color: var(--danger);
+    }
+  }
+}
+
+.saved {
+  margin-left: 0.6rem;
+  color: #24521f;
+  font-weight: 600;
+}
+
+/* Bloqueos */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+
+  .field {
+    min-width: 12rem;
+    margin-bottom: 0;
+  }
+}
+
+.time-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 50rem) {
+  .admin-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

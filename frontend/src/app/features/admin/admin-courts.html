@@ -1,0 +1,124 @@
+<div class="admin-layout">
+  <section aria-labelledby="titulo-pistas">
+    <h2 id="titulo-pistas" class="section-title">Pistas activas</h2>
+
+    @if (loading()) {
+      <p class="status" role="status">Cargando pistas…</p>
+    } @else if (error(); as message) {
+      <p class="alert" role="alert">{{ message }}</p>
+    } @else if (courts().length === 0) {
+      <p class="status">No hay ninguna pista activa. Añade la primera con el formulario.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th>
+              <th scope="col">Superficie</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Iluminación</th>
+              <th scope="col"><span class="visually-hidden">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (court of courts(); track court.id) {
+              <tr>
+                <td class="cell-name">{{ court.name }}</td>
+                <td>
+                  <span class="surface-tag" [attr.data-surface]="court.surface">
+                    {{ surfaceLabels[court.surface] }}
+                  </span>
+                </td>
+                <td>{{ court.indoor ? 'Cubierta' : 'Exterior' }}</td>
+                <td>{{ court.hasLighting ? 'Sí' : 'No' }}</td>
+                <td class="cell-actions">
+                  @if (confirmingId() === court.id) {
+                    <button
+                      type="button"
+                      class="button button--small button--danger"
+                      [disabled]="deactivatingId() === court.id"
+                      (click)="deactivate(court)"
+                    >
+                      {{ deactivatingId() === court.id ? 'Desactivando…' : 'Sí, desactivar' }}
+                    </button>
+                    <button type="button" class="button button--small button--secondary" (click)="keep()">
+                      No
+                    </button>
+                  } @else {
+                    <button type="button" class="button button--small button--secondary" (click)="edit(court)">
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      class="button button--small button--secondary"
+                      (click)="askToDeactivate(court)"
+                    >
+                      Desactivar
+                    </button>
+                  }
+                </td>
+              </tr>
+              @if (rowError()?.id === court.id) {
+                <tr class="row-error">
+                  <td colspan="5" role="alert">{{ rowError()!.message }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <aside class="panel">
+    <h2 class="section-title">{{ editing() ? 'Editar ' + editing()!.name : 'Añadir pista' }}</h2>
+
+    @if (formError(); as message) {
+      <p class="alert" role="alert">{{ message }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="field">
+        <label for="court-name">Nombre</label>
+        <input
+          id="court-name"
+          type="text"
+          formControlName="name"
+          [class.is-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <span class="field__error">Escribe un nombre de hasta 50 caracteres.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="court-surface">Superficie</label>
+        <select id="court-surface" formControlName="surface">
+          @for (surface of surfaces; track surface) {
+            <option [value]="surface">{{ surfaceLabels[surface] }}</option>
+          }
+        </select>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" formControlName="indoor" />
+        Pista cubierta
+      </label>
+      <label class="check">
+        <input type="checkbox" formControlName="hasLighting" />
+        Tiene iluminación
+      </label>
+
+      <div class="panel__actions">
+        <button type="submit" class="button button--block" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : editing() ? 'Guardar cambios' : 'Añadir pista' }}
+        </button>
+        @if (editing()) {
+          <button type="button" class="button button--secondary button--block" (click)="resetForm()">
+            Cancelar edición
+          </button>
+        }
+      </div>
+    </form>
+  </aside>
+</div>

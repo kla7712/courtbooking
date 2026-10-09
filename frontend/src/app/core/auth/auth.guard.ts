@@ -18,3 +18,13 @@ export const authGuard: CanActivateFn = (_route, state) => {
     ? true
     : router.createUrlTree(['/login'], { queryParams: { volver: state.url } });
 };
+
+/** Solo administradores: sin sesión lleva al login; con sesión de socio, a la portada. */
+export const adminGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (!auth.isLoggedIn()) {
+    return router.createUrlTree(['/login'], { queryParams: { volver: state.url } });
+  }
+  return auth.isAdmin() ? true : router.createUrlTree(['/']);
+};
