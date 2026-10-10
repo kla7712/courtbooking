@@ -1,0 +1,84 @@
+<div class="filters">
+  <div class="field">
+    <label for="bookings-date">Día</label>
+    <input id="bookings-date" type="date" [value]="date()" (change)="selectDate($any($event.target).value)" />
+  </div>
+  <div class="day-steps">
+    <button type="button" class="button button--small button--secondary" (click)="shiftDay(-1)">Día anterior</button>
+    <button type="button" class="button button--small button--secondary" (click)="shiftDay(1)">Día siguiente</button>
+  </div>
+</div>
+
+<section aria-labelledby="titulo-reservas">
+  <h2 id="titulo-reservas" class="section-title">Reservas del {{ dateLabel() }}</h2>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando reservas…</p>
+  } @else if (error(); as message) {
+    <p class="alert" role="alert">{{ message }}</p>
+  } @else if (bookings().length === 0) {
+    <p class="status">No hay ninguna reserva este día.</p>
+  } @else {
+    <p class="note">
+      {{ confirmedCount() }} {{ confirmedCount() === 1 ? 'reserva confirmada' : 'reservas confirmadas' }}.
+      Como administrador puedes cancelar cualquiera que no haya empezado, sin el plazo de 24 horas.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Horario</th>
+            <th scope="col">Pista</th>
+            <th scope="col">Socio</th>
+            <th scope="col">Precio</th>
+            <th scope="col">Estado</th>
+            <th scope="col"><span class="visually-hidden">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (booking of bookings(); track booking.id) {
+            <tr [class.is-inactive]="booking.status === 'CANCELLED'">
+              <td class="cell-time cell-name">
+                {{ shortTime(booking.startTime) }} – {{ shortTime(booking.endTime) }}
+              </td>
+              <td>{{ booking.courtName }}</td>
+              <td>
+                {{ booking.userName }}
+                <span class="cell-sub">{{ booking.userEmail }}</span>
+              </td>
+              <td class="cell-time">{{ formatPrice(booking.price) }}</td>
+              <td>{{ booking.status === 'CANCELLED' ? 'Cancelada' : 'Confirmada' }}</td>
+              <td class="cell-actions">
+                @if (confirmingId() === booking.id) {
+                  <button
+                    type="button"
+                    class="button button--small button--danger"
+                    [disabled]="cancellingId() === booking.id"
+                    (click)="cancel(booking)"
+                  >
+                    {{ cancellingId() === booking.id ? 'Cancelando…' : 'Sí, cancelar' }}
+                  </button>
+                  <button type="button" class="button button--small button--secondary" (click)="keep()">No</button>
+                } @else if (canCancel(booking)) {
+                  <button
+                    type="button"
+                    class="button button--small button--secondary"
+                    (click)="askToCancel(booking)"
+                  >
+                    Cancelar reserva
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (rowError()?.id === booking.id) {
+              <tr class="row-error">
+                <td colspan="6" role="alert">{{ rowError()!.message }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

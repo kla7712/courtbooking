@@ -1,13 +1,13 @@
 <div class="admin-layout">
   <section aria-labelledby="titulo-pistas">
-    <h2 id="titulo-pistas" class="section-title">Pistas activas</h2>
+    <h2 id="titulo-pistas" class="section-title">Pistas del club</h2>
 
     @if (loading()) {
       <p class="status" role="status">Cargando pistas…</p>
     } @else if (error(); as message) {
       <p class="alert" role="alert">{{ message }}</p>
     } @else if (courts().length === 0) {
-      <p class="status">No hay ninguna pista activa. Añade la primera con el formulario.</p>
+      <p class="status">Todavía no hay ninguna pista. Añade la primera con el formulario.</p>
     } @else {
       <div class="table-wrap">
         <table>
@@ -15,24 +15,33 @@
             <tr>
               <th scope="col">Nombre</th>
               <th scope="col">Superficie</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Iluminación</th>
+              <th scope="col">Características</th>
+              <th scope="col">Estado</th>
               <th scope="col"><span class="visually-hidden">Acciones</span></th>
             </tr>
           </thead>
           <tbody>
             @for (court of courts(); track court.id) {
-              <tr>
+              <tr [class.is-inactive]="!court.active">
                 <td class="cell-name">{{ court.name }}</td>
                 <td>
                   <span class="surface-tag" [attr.data-surface]="court.surface">
                     {{ surfaceLabels[court.surface] }}
                   </span>
                 </td>
-                <td>{{ court.indoor ? 'Cubierta' : 'Exterior' }}</td>
-                <td>{{ court.hasLighting ? 'Sí' : 'No' }}</td>
+                <td>{{ court.indoor ? 'Cubierta' : 'Exterior' }}, {{ court.hasLighting ? 'con luz' : 'sin luz' }}</td>
+                <td>{{ court.active ? 'Activa' : 'Desactivada' }}</td>
                 <td class="cell-actions">
-                  @if (confirmingId() === court.id) {
+                  @if (!court.active) {
+                    <button
+                      type="button"
+                      class="button button--small"
+                      [disabled]="activatingId() === court.id"
+                      (click)="activate(court)"
+                    >
+                      {{ activatingId() === court.id ? 'Activando…' : 'Activar' }}
+                    </button>
+                  } @else if (confirmingId() === court.id) {
                     <button
                       type="button"
                       class="button button--small button--danger"

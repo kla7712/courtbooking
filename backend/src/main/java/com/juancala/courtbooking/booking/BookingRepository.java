@@ -27,5 +27,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @EntityGraph(attributePaths = "court")
     List<Booking> findByUserIdOrderByStartTimeDesc(Long userId);
 
+    /** Reservas de todas las pistas que empiezan dentro del intervalo [dayStart, dayEnd). */
+    @EntityGraph(attributePaths = {"court", "user"})
+    @Query("""
+            select b from Booking b
+            where b.startTime >= :dayStart
+              and b.startTime < :dayEnd
+            order by b.startTime
+            """)
+    List<Booking> findStartingBetween(@Param("dayStart") Instant dayStart,
+                                      @Param("dayEnd") Instant dayEnd);
+
     long countByUserIdAndStatusAndEndTimeAfter(Long userId, BookingStatus status, Instant instant);
 }

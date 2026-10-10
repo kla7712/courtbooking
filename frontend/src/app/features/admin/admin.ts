@@ -10,6 +10,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
       <h1 class="admin-title">Administración</h1>
 
       <nav class="tabs" aria-label="Secciones de administración">
+        <a routerLink="reservas" routerLinkActive="is-active">Reservas</a>
         <a routerLink="pistas" routerLinkActive="is-active">Pistas</a>
         <a routerLink="tarifas" routerLinkActive="is-active">Tarifas</a>
         <a routerLink="bloqueos" routerLinkActive="is-active">Bloqueos</a>

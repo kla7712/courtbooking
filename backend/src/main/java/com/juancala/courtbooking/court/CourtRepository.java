@@ -12,6 +12,9 @@ public interface CourtRepository extends JpaRepository<Court, Long> {
 
     List<Court> findByActiveTrueOrderByName();
 
+    /** Todas las pistas, también las desactivadas (para el panel de administración). */
+    List<Court> findAllByOrderByName();
+
     List<Court> findBySurfaceAndActiveTrueOrderByName(Surface surface);
 
     boolean existsByNameIgnoreCase(String name);

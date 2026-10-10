@@ -49,6 +49,12 @@ public class CourtController {
         return courtService.update(id, request);
     }
 
+    /** Solo admin: reactiva una pista desactivada. */
+    @PutMapping("/{id}/activate")
+    public CourtResponse activate(@PathVariable Long id) {
+        return courtService.activate(id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivate(@PathVariable Long id) {
         courtService.deactivate(id);

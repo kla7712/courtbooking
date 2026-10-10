@@ -2,6 +2,7 @@ package com.juancala.courtbooking.booking;
 
 import com.juancala.courtbooking.block.CourtBlock;
 import com.juancala.courtbooking.block.CourtBlockRepository;
+import com.juancala.courtbooking.booking.dto.AdminBookingResponse;
 import com.juancala.courtbooking.booking.dto.AvailabilityResponse;
 import com.juancala.courtbooking.booking.dto.BookingResponse;
 import com.juancala.courtbooking.booking.dto.CreateBookingRequest;
@@ -111,6 +112,15 @@ public class BookingService {
     public List<BookingResponse> findByUser(Long userId) {
         return bookingRepository.findByUserIdOrderByStartTimeDesc(userId).stream()
                 .map(booking -> BookingResponse.from(booking, rules.getZone()))
+                .toList();
+    }
+
+    /** Para el panel de administración: todas las reservas de un día, de cualquier socio. */
+    public List<AdminBookingResponse> findByDate(LocalDate date) {
+        Instant dayStart = date.atStartOfDay(rules.getZone()).toInstant();
+        Instant dayEnd = date.plusDays(1).atStartOfDay(rules.getZone()).toInstant();
+        return bookingRepository.findStartingBetween(dayStart, dayEnd).stream()
+                .map(booking -> AdminBookingResponse.from(booking, rules.getZone()))
                 .toList();
     }
 

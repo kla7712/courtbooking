@@ -45,6 +45,8 @@ public class SecurityConfig {
                         // Documentación de la API (Swagger UI y especificación OpenAPI)
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        // Consultas reservadas al panel de administración
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Consultar pistas (y su disponibilidad y bloqueos) es público;
                         // modificarlas, solo para administradores
                         .requestMatchers(HttpMethod.GET, "/api/courts/**").permitAll()

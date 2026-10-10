@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.juancala.courtbooking.TestcontainersConfiguration;
+import com.juancala.courtbooking.booking.dto.AdminBookingResponse;
 import com.juancala.courtbooking.booking.dto.BookingResponse;
 import com.juancala.courtbooking.booking.dto.CreateBookingRequest;
 import com.juancala.courtbooking.common.BadRequestException;
 import com.juancala.courtbooking.common.ConflictException;
 import com.juancala.courtbooking.court.Court;
 import com.juancala.courtbooking.court.CourtRepository;
+import com.juancala.courtbooking.court.CourtService;
+import com.juancala.courtbooking.court.dto.CourtResponse;
 import com.juancala.courtbooking.pricing.PricingService;
 import com.juancala.courtbooking.user.Role;
 import com.juancala.courtbooking.user.User;
@@ -46,6 +49,8 @@ class BookingServiceIntegrationTest {
     private PricingService pricingService;
     @Autowired
     private BookingRepository bookingRepository;
+    @Autowired
+    private CourtService courtService;
     @Autowired
     private CourtRepository courtRepository;
     @Autowired
@@ -222,6 +227,38 @@ class BookingServiceIntegrationTest {
 
         assertThat(stored.startTime()).isEqualTo(LocalTime.of(10, 0));
         assertThat(stored.endTime()).isEqualTo(LocalTime.of(11, 0));
+    }
+
+    @Test
+    void adminSeesTheBookingsOfEveryMemberForADay() {
+        bookingService.create(createUser(),
+                new CreateBookingRequest(litClayCourt.getId(), bookingDate, LocalTime.of(10, 0), 60));
+        bookingService.create(createUser(),
+                new CreateBookingRequest(unlitClayCourt.getId(), bookingDate, LocalTime.of(12, 0), 90));
+
+        List<AdminBookingResponse> sameDay = bookingService.findByDate(bookingDate);
+        List<AdminBookingResponse> nextDay = bookingService.findByDate(bookingDate.plusDays(1));
+
+        assertThat(sameDay).hasSize(2);
+        assertThat(sameDay.get(0).startTime()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(sameDay.get(0).userEmail()).endsWith("@example.com");
+        assertThat(nextDay).isEmpty();
+    }
+
+    @Test
+    void deactivatedCourtCanBeActivatedAgain() {
+        Long courtId = findCourt("Pista 3").getId();
+        try {
+            courtService.deactivate(courtId);
+
+            assertThat(courtService.findAll(null)).extracting(CourtResponse::id).doesNotContain(courtId);
+            assertThat(courtService.findAllIncludingInactive()).extracting(CourtResponse::id).contains(courtId);
+        } finally {
+            // Se reactiva siempre, para no dejar la pista apagada para otros tests
+            courtService.activate(courtId);
+        }
+
+        assertThat(courtService.findAll(null)).extracting(CourtResponse::id).contains(courtId);
     }
 
     private Court findCourt(String name) {

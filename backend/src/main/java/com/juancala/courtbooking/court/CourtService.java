@@ -25,6 +25,11 @@ public class CourtService {
         return courts.stream().map(CourtResponse::from).toList();
     }
 
+    /** Para el panel de administración: incluye las pistas desactivadas. */
+    public List<CourtResponse> findAllIncludingInactive() {
+        return courtRepository.findAllByOrderByName().stream().map(CourtResponse::from).toList();
+    }
+
     public CourtResponse findById(Long id) {
         return CourtResponse.from(getCourt(id));
     }
@@ -59,6 +64,14 @@ public class CourtService {
     @Transactional
     public void deactivate(Long id) {
         getCourt(id).setActive(false);
+    }
+
+    /** Vuelve a poner en servicio una pista desactivada. */
+    @Transactional
+    public CourtResponse activate(Long id) {
+        Court court = getCourt(id);
+        court.setActive(true);
+        return CourtResponse.from(court);
     }
 
     private Court getCourt(Long id) {

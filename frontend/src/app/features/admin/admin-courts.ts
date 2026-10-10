@@ -30,6 +30,7 @@ export class AdminCourts {
   /** Pista para la que se pide confirmar la desactivación. */
   protected readonly confirmingId = signal<number | null>(null);
   protected readonly deactivatingId = signal<number | null>(null);
+  protected readonly activatingId = signal<number | null>(null);
   protected readonly rowError = signal<{ id: number; message: string } | null>(null);
 
   protected readonly form = this.formBuilder.group({
@@ -47,7 +48,7 @@ export class AdminCourts {
     this.loading.set(true);
     this.error.set(null);
 
-    this.http.get<Court[]>('/api/courts').subscribe({
+    this.http.get<Court[]>('/api/admin/courts').subscribe({
       next: (courts) => {
         this.courts.set(courts);
         this.loading.set(false);
@@ -116,6 +117,25 @@ export class AdminCourts {
     this.confirmingId.set(null);
   }
 
+  protected activate(court: Court): void {
+    this.activatingId.set(court.id);
+    this.rowError.set(null);
+
+    this.http.put<Court>(`/api/courts/${court.id}/activate`, null).subscribe({
+      next: (saved) => {
+        this.activatingId.set(null);
+        this.courts.update((courts) => courts.map((item) => (item.id === saved.id ? saved : item)));
+      },
+      error: (error: unknown) => {
+        this.activatingId.set(null);
+        this.rowError.set({
+          id: court.id,
+          message: apiErrorMessage(error, 'No se ha podido activar la pista.'),
+        });
+      },
+    });
+  }
+
   protected deactivate(court: Court): void {
     this.deactivatingId.set(court.id);
 
@@ -123,7 +143,10 @@ export class AdminCourts {
       next: () => {
         this.deactivatingId.set(null);
         this.confirmingId.set(null);
-        this.courts.update((courts) => courts.filter((item) => item.id !== court.id));
+        // La pista no se borra: sigue en la lista, marcada como desactivada
+        this.courts.update((courts) =>
+          courts.map((item) => (item.id === court.id ? { ...item, active: false } : item)),
+        );
         if (this.editing()?.id === court.id) {
           this.resetForm();
         }

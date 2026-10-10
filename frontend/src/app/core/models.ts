@@ -66,6 +66,12 @@ export interface Booking {
   status: BookingStatus;
 }
 
+/** Una reserva vista por el administrador: incluye quién la hizo. */
+export interface AdminBooking extends Booking {
+  userName: string;
+  userEmail: string;
+}
+
 export type DayType = 'WEEKDAY' | 'WEEKEND';
 
 export const DAY_TYPE_LABELS: Record<DayType, string> = {
